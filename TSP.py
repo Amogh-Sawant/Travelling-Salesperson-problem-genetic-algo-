@@ -10,7 +10,7 @@ red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
 pygame.display.set_caption("travelling salesperson")
-fps = 30
+fps = 300
 clock = pygame.time.Clock()
 run = True
 pygame.init()
@@ -39,19 +39,47 @@ def total_distance(town):
             d += distance(cityA, cityB)
     return int(d)
 
+def swap(a, b):
+    temp = b 
+    b = a
+    a = temp
+    return a, b
+
+def mutate(town):
+        random_range = random.randrange(0, len(town))
+        for _ in range(random_range):
+                city_x = random.randrange(0, len(town))
+                city_y = random.randrange(0, len(town))
+                if city_x != city_y:
+                        town[city_x], town[city_y] = swap(town[city_x], town[city_y])
+        return town 
+
+def optimize(town): 
+        pop = []
+        pop_size = 100
+        for _ in range(pop_size):
+                town_copy = []
+                for city in town:
+                        town_copy.append(city)
+                c = list(mutate(town_copy))
+                c.append(total_distance(c))
+                pop.append(c)
+
+        pop.sort(key=lambda x: x[-1])
+        best_town = pop[0]
+
+        return best_town[:-1]
+
 town = []
-num_of_cities = 7
+num_of_cities = 10
 best_distance = 1_000_000_000
 current_distance = 0
 optimal_route = []
+route_distance = []
 
 for _ in range(num_of_cities):
     c = City(random.randint(0, width), random.randint(0, height))
     town.append(c)
-
-for _ in range(population_size):
-    random.shuffle(town)
-    route_distance.append(total_distance(town))
 
 for t in town:
     optimal_route.append(t)
@@ -76,7 +104,8 @@ while run:
             optimal_route.append(t)
         print(best_distance)
     
-    random.shuffle(town)
+    town = optimize(town)
+    # random.shuffle(town)
         
     for event in pygame.event.get():
         if event.type is pygame.QUIT:
